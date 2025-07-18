@@ -6,9 +6,9 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 # from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LogisticRegression
 
-# Performing Linear Regression on the housing dataset.
+# Performing Logistic Regression on the housing dataset.
 
 
 def get_data(path):
