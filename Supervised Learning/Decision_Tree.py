@@ -1,4 +1,11 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import train_test_split
+# from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 def get_data(path):
@@ -76,6 +83,109 @@ def detect_outlier(data):
 
 
 # Display total number of outlier
-housing_outlier = detect_outlier(housing_encoded)
-total_outlier = housing_outlier[housing_outlier['outlier'] == -1]
-print(f"Total number of outlier is: {total_outlier.value_counts().sum()}")
+housing_with_outlier = detect_outlier(housing_encoded)
+total_outlier = housing_with_outlier[housing_with_outlier['outlier'] == -1]
+# print(f"Total number of outlier is: {total_outlier.value_counts().sum()}")
+
+
+# Visualize a comparaison between outlier data and normal data.
+
+sns.boxplot(data=housing_with_outlier, x='outlier', y='price')
+plt.title("Price Distribution With and Without Outliers")
+# plt.show()
+
+
+# Further analysis of the housing dataset using decision tree model.
+# We'll be modeling the housing dataset with decision tree model into two phases:  outlier and without outlier.
+# 1- With outlier.
+
+# Remove the outlier column.
+housing_with_outlier = housing_with_outlier.drop(columns='outlier', axis=1)
+
+# Function that split data into training and testing datasets.
+
+
+def split_data(data):
+    """Separate target variable from features and Split data into training and testing datasets"""
+    # Separate target variable from features
+    X = data.drop(columns=['price'])
+    y = data['price']
+
+    # Split into train and test datasets
+    x_train, x_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42)
+
+    # Return target, features, train and test datatests.
+    return X, y, x_train, x_test, y_train, y_test
+
+
+X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
+    housing_with_outlier)
+# print(X_1.shape)
+# print(y_1.shape)
+# print(x_train_1.shape)
+# print(x_test_1.shape)
+# print(y_train_1.shape)
+# print(y_test_1.shape)
+
+
+# Train the data using decision tree model.
+def data_training(x_train, y_train):
+    """Function for dataset training"""
+    # Create an instance of the DecisionTreeRegressor class
+    model = DecisionTreeRegressor(criterion='squared_error',
+                                  max_depth=5,
+                                  min_samples_leaf=10,
+                                  random_state=42)
+    # Fit the model
+    model.fit(x_train, y_train)
+    return model
+
+
+model_1 = data_training(x_train_1, y_train_1)
+
+# Make a prediction
+
+
+def prediction(model, x_test):
+    """Function that return a prediction of our model."""
+    y_pred = model.predict(x_test)
+    return y_pred
+
+
+y_pred_1 = prediction(model_1, x_test_1)
+
+
+# Perform a classification report
+def report(y_test, y_pred):
+    """Return a classification report of the model."""
+    print("MSE:", mean_squared_error(y_test, y_pred))
+    print("MAE:", mean_absolute_error(y_test, y_pred))
+    print("R² Score:", r2_score(y_test, y_pred))
+
+
+print("\nClassification report for data with outlier:")
+report(y_pred_1, y_test_1)
+
+
+# REMOVING OUTLIER FROM THE HOUSE DATA AND COMPARE THE RESULT WITH PREVIOUS REPORT THAT CONTAIN OUTLIER.
+
+data_no_outlier = detect_outlier(housing_encoded)
+data_no_outlier = data_no_outlier[data_no_outlier['outlier'] == 1]
+
+# Remove the outlier column before preprocessing.
+data_no_outlier = data_no_outlier.drop(columns=['outlier'], axis=1)
+
+# Splitting data
+X_2, y_2, x_train_2, x_test_2, y_train_2, y_test_2 = split_data(
+    data_no_outlier)
+
+# Training data
+model_2 = data_training(x_train_2, y_train_2)
+
+# Make prediction
+y_pred_2 = prediction(model_2, x_test_2)
+
+# Report
+print("\nClassification report for data without outlier:")
+report(y_pred_2, y_test_2)
