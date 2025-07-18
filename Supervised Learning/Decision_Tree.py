@@ -85,14 +85,14 @@ def detect_outlier(data):
 # Display total number of outlier
 housing_with_outlier = detect_outlier(housing_encoded)
 total_outlier = housing_with_outlier[housing_with_outlier['outlier'] == -1]
-# print(f"Total number of outlier is: {total_outlier.value_counts().sum()}")
+print(f"Total number of outlier is: {total_outlier.value_counts().sum()}")
 
 
 # Visualize a comparaison between outlier data and normal data.
 
 sns.boxplot(data=housing_with_outlier, x='outlier', y='price')
 plt.title("Price Distribution With and Without Outliers")
-# plt.show()
+plt.show()
 
 
 # Further analysis of the housing dataset using decision tree model.
@@ -144,9 +144,8 @@ def data_training(x_train, y_train):
 
 model_1 = data_training(x_train_1, y_train_1)
 
+
 # Make a prediction
-
-
 def prediction(model, x_test):
     """Function that return a prediction of our model."""
     y_pred = model.predict(x_test)
