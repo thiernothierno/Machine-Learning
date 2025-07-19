@@ -1,3 +1,13 @@
+
+""" LOGISTIC REGRESSION ON THE BREAST CANCER DATASET AND THE DIGIT DATASET FROM KAGGLE.
+    1- USE BINOMIAL LOGISTIC REGRESSION ON THE BREAST CANSER DATASET AS THE DATA CONTAINS ONLY TWO POSSIBLE CATEGORIES.
+    EITHER THE PATIENT HAS A BEGNIN OR MALIGNANT TURMER CANCER.
+    
+    2- USE MULTINOMIAL LOGISTIC REGRESSION ON THE DIGIT DATASET AS THE DATA HAS MORE THAN THREE POSSIBLE CATEGORIES.
+    """
+
+# Import required libraries.
+
 import pandas as pd
 import matplotlib.pyplot as plt
 # import numpy as np
@@ -7,8 +17,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 # from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.linear_model import LogisticRegression
-
-# Performing Logistic Regression on the housing dataset.
 
 
 def get_data(path):
@@ -103,6 +111,7 @@ plt.show()
 # We'll be modeling the housing dataset with decision tree model into two phases:  outlier and without outlier.
 
 # 1- With outlier.
+
 # Remove the outlier column.
 breast_cancer_with_outlier = breast_cancer_with_outlier.drop(
     columns='outlier', axis=1)
