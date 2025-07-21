@@ -1,21 +1,17 @@
-""" LOGISTIC REGRESSION ON THE BREAST CANCER DATASET AND THE DIGIT DATASET FROM KAGGLE.
-    1- USE BINOMIAL LOGISTIC REGRESSION ON THE BREAST CANSER DATASET AS THE DATA CONTAINS ONLY TWO POSSIBLE CATEGORIES.
-    EITHER THE PATIENT HAS A BEGNIN OR MALIGNANT TURMER CANCER.
-    
-    2- USE MULTINOMIAL LOGISTIC REGRESSION ON THE DIGIT DATASET AS THE DATA HAS MORE THAN THREE POSSIBLE CATEGORIES.
+""" PERFORMING Random Forest ON THE HOUSING DATASET AND THE DIGIT DATASET FROM KAGGLE.
+    1- USE REGRESSION TREE ON THE HOUSING DATASET AS THE DATA CONTAINS CONTINUOUS VALUES.
+    2- USE CLASSIFICATION TREE ON BOTH THE BREAST CANCER AND DIGITS DATASET AS THE DATA HAS TWO OR MORE POSSIBLE CATEGORIES.
     """
 
-# Import required libraries.
-
+# Import required libraries
 import pandas as pd
 import matplotlib.pyplot as plt
 # import numpy as np
 import seaborn as sns
-# from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-# from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.linear_model import LogisticRegression
+# from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 def get_data(path):
@@ -24,17 +20,17 @@ def get_data(path):
     return data
 
 
-PATH = r"C:\Users\thier\OneDrive\Desktop\ML data\breast-cancer.csv"
-breast_cancer_data = get_data(PATH)
+PATH = r"C:\Users\thier\OneDrive\Desktop\ML data\Housing.csv"
+housing_data = get_data(PATH)
 
 # Display first five rows of the data
-print(f"First five rows of data: {breast_cancer_data.head()}")
+# print(f"First five rows of data: {housing_data.head()}")
 
 # Show the shape of the data
-print(f"Shape of the data: {breast_cancer_data.shape}")
+# print(f"Shape of the data: {housing_data.shape}")
 
 # Display general info of the data
-print(f"General info of the data: {breast_cancer_data.describe()}")
+# print(f"General info of the data: {housing_data.describe()}")
 
 
 # Check for missing values.
@@ -66,11 +62,11 @@ def get_categorical_columns(data):
 
 
 # Generate dummies for columns with object as data type.
-categorical_columns = get_categorical_columns(breast_cancer_data)
-breast_cancer_encoded = pd.get_dummies(
-    breast_cancer_data, columns=categorical_columns, drop_first=True)
+categorical_columns = get_categorical_columns(housing_data)
+housing_encoded = pd.get_dummies(
+    housing_data, columns=categorical_columns, drop_first=True)
 # verify data type of the encoded data
-print(breast_cancer_encoded.info())
+# print(housing_encoded.info())
 
 
 # Now let proceed to the outlier detection using isolation forest method.
@@ -80,38 +76,37 @@ def detect_outlier(data):
     """Function that return outlier from a dataframe if they exist."""
     # Imports the IsolationForest model from scikit-learn.
     from sklearn.ensemble import IsolationForest
+
     # Creates a new Isolation Forest model with a threshold of 0.05.
     # This tells the model we expect ~5% of the data to be outliers.
     model = IsolationForest(contamination=0.05)
+
     # Fits the Isolation Forest model to your data (excluding the target column: 'price')
     # Creates a new column called 'outlier' in the DataFrame with the prediction results.
-    data['outlier'] = model.fit_predict(
-        data.drop(columns='diagnosis_M', axis=1))
+    data['outlier'] = model.fit_predict(data.drop('price', axis=1))
 
     return data
 
 
 # Display total number of outlier
-breast_cancer_with_outlier = detect_outlier(breast_cancer_encoded)
-total_outlier = breast_cancer_with_outlier[breast_cancer_with_outlier['outlier'] == -1]
+housing_with_outlier = detect_outlier(housing_encoded)
+total_outlier = housing_with_outlier[housing_with_outlier['outlier'] == -1]
 print(f"Total number of outlier is: {total_outlier.value_counts().sum()}")
 
 
 # Visualize a comparaison between outlier data and normal data.
-sns.boxplot(data=breast_cancer_with_outlier, x='outlier', y='diagnosis_M')
+
+sns.boxplot(data=housing_with_outlier, x='outlier', y='price')
 plt.title("Price Distribution With and Without Outliers")
 plt.show()
 
 
 # Further analysis of the housing dataset using decision tree model.
 # We'll be modeling the housing dataset with decision tree model into two phases:  outlier and without outlier.
-
 # 1- With outlier.
 
 # Remove the outlier column.
-breast_cancer_with_outlier = breast_cancer_with_outlier.drop(
-    columns='outlier', axis=1)
-# print(breast_cancer_with_outlier)
+housing_with_outlier = housing_with_outlier.drop(columns='outlier', axis=1)
 
 # Function that split data into training and testing datasets.
 
@@ -119,8 +114,8 @@ breast_cancer_with_outlier = breast_cancer_with_outlier.drop(
 def split_data(data):
     """Separate target variable from features and Split data into training and testing datasets"""
     # Separate target variable from features
-    X = data.drop(columns=['diagnosis_M'])
-    y = data['diagnosis_M']
+    X = data.drop(columns=['price'])
+    y = data['price']
 
     # Split into train and test datasets
     x_train, x_test, y_train, y_test = train_test_split(
@@ -131,8 +126,7 @@ def split_data(data):
 
 
 X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
-    breast_cancer_with_outlier)
-
+    housing_with_outlier)
 # print(X_1.shape)
 # print(y_1.shape)
 # print(x_train_1.shape)
@@ -140,23 +134,27 @@ X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
 # print(y_train_1.shape)
 # print(y_test_1.shape)
 
+
 # Train the data using decision tree model.
-
-
 def data_training(regressor, x_train, y_train):
     """Function for dataset training"""
-    # Create an instance of the logisticRegression class
-    model = regressor
+    # Create an instance of the DecisionTreeRegressor class
+    model = regressor(n_estimators=100,
+                      max_depth=None,
+                      criterion='squared_error',
+                      max_features=10,
+                      oob_score=True,
+                      random_state=0)
     # Fit the model
     model.fit(x_train, y_train)
+
     return model
 
 
-model_1 = data_training(LogisticRegression(), x_train_1, y_train_1)
+model_1 = data_training(RandomForestRegressor, x_train_1, y_train_1)
+
 
 # Make a prediction
-
-
 def prediction(model, x_test):
     """Function that return a prediction of our model."""
     y_pred = model.predict(x_test)
@@ -169,34 +167,36 @@ y_pred_1 = prediction(model_1, x_test_1)
 # Perform a classification report
 def report(y_test, y_pred):
     """Return a classification report of the model."""
-    print("Accuracy:", accuracy_score(y_test, y_pred))
-    print("Confusion Matrix:", confusion_matrix(y_test, y_pred))
-    print("Classification Report", classification_report(y_test, y_pred))
+    print("MSE:", mean_squared_error(y_test, y_pred))
+    print("MAE:", mean_absolute_error(y_test, y_pred))
+    print("R² Score:", r2_score(y_test, y_pred))
 
 
 print("\nClassification report for data with outlier:")
-report(y_test_1, y_pred_1)
+report(y_pred_1, y_test_1)
 
 
 # REMOVING OUTLIER FROM THE HOUSE DATA AND COMPARE THE RESULT WITH PREVIOUS REPORT THAT CONTAIN OUTLIER.
 
-breast_cancer_no_outlier = detect_outlier(breast_cancer_encoded)
-breast_cancer_no_outlier = breast_cancer_no_outlier[breast_cancer_no_outlier['outlier'] == 1]
+data_no_outlier = detect_outlier(housing_encoded)
+data_no_outlier = data_no_outlier[data_no_outlier['outlier'] == 1]
 
 # Remove the outlier column before preprocessing.
-breast_cancer_no_outlier = breast_cancer_no_outlier.drop(
-    columns=['outlier'], axis=1)
+data_no_outlier = data_no_outlier.drop(columns=['outlier'], axis=1)
 
 # Splitting data
 X_2, y_2, x_train_2, x_test_2, y_train_2, y_test_2 = split_data(
-    breast_cancer_no_outlier)
+    data_no_outlier)
 
 # Training data
-model_2 = data_training(LogisticRegression(), x_train_2, y_train_2)
+model_2 = data_training(RandomForestRegressor, x_train_2, y_train_2)
 
 # Make prediction
 y_pred_2 = prediction(model_2, x_test_2)
 
 # Report
 print("\nClassification report for data without outlier:")
-report(y_test_2, y_pred_2)
+report(y_pred_2, y_test_2)
+
+
+# Random Forest

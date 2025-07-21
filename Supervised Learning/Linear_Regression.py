@@ -134,16 +134,16 @@ X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
 
 
 # Train the data using decision tree model.
-def data_training(x_train, y_train):
+def data_training(regressor, x_train, y_train):
     """Function for dataset training"""
     # Create an instance of the linearRegression class
-    model = LinearRegression()
+    model = regressor
     # Fit the model
     model.fit(x_train, y_train)
     return model
 
 
-model_1 = data_training(x_train_1, y_train_1)
+model_1 = data_training(LinearRegression(), x_train_1, y_train_1)
 
 
 # Make a prediction
@@ -181,7 +181,7 @@ X_2, y_2, x_train_2, x_test_2, y_train_2, y_test_2 = split_data(
     data_no_outlier)
 
 # Training data
-model_2 = data_training(x_train_2, y_train_2)
+model_2 = data_training(LinearRegression(), x_train_2, y_train_2)
 
 # Make prediction
 y_pred_2 = prediction(model_2, x_test_2)

@@ -1,3 +1,9 @@
+""" PERFORMING DECISION TREE ON THE HOUSING DATASET AND THE DIGIT DATASET FROM KAGGLE.
+    1- USE REGRESSION TREE ON THE HOUSING DATASET AS THE DATA CONTAINS CONTINUOUS VALUES.
+    2- USE CLASSIFICATION TREE ON BOTH THE BREAST CANCER AND DIGITS DATASET AS THE DATA HAS TWO OR MORE POSSIBLE CATEGORIES.
+    """
+
+# Import required libraries
 import pandas as pd
 import matplotlib.pyplot as plt
 # import numpy as np
@@ -130,19 +136,19 @@ X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
 
 
 # Train the data using decision tree model.
-def data_training(x_train, y_train):
+def data_training(regressor, x_train, y_train):
     """Function for dataset training"""
     # Create an instance of the DecisionTreeRegressor class
-    model = DecisionTreeRegressor(criterion='squared_error',
-                                  max_depth=5,
-                                  min_samples_leaf=10,
-                                  random_state=42)
+    model = regressor(criterion='squared_error',
+                      max_depth=5,
+                      min_samples_leaf=10,
+                      random_state=42)
     # Fit the model
     model.fit(x_train, y_train)
     return model
 
 
-model_1 = data_training(x_train_1, y_train_1)
+model_1 = data_training(DecisionTreeRegressor, x_train_1, y_train_1)
 
 
 # Make a prediction
@@ -180,7 +186,7 @@ X_2, y_2, x_train_2, x_test_2, y_train_2, y_test_2 = split_data(
     data_no_outlier)
 
 # Training data
-model_2 = data_training(x_train_2, y_train_2)
+model_2 = data_training(DecisionTreeRegressor, x_train_2, y_train_2)
 
 # Make prediction
 y_pred_2 = prediction(model_2, x_test_2)
@@ -188,3 +194,6 @@ y_pred_2 = prediction(model_2, x_test_2)
 # Report
 print("\nClassification report for data without outlier:")
 report(y_pred_2, y_test_2)
+
+
+# Random Forest
