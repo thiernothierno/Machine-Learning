@@ -1,30 +1,24 @@
-"""This project utilizes two datasets sourced from Kaggle: the Breast Cancer dataset and the Digits dataset. 
-For the Breast Cancer dataset, which consists of diagnostic data on tumors labeled as either benign or malignant, 
-I will apply binomial logistic regression since it involves two possible outcome categories. 
-The dataset includes various features extracted from digitized images of fine needle aspirates (FNA) of breast masses, such as radius, 
-texture, perimeter, area, and smoothness.
-In contrast, the Digits dataset contains images of handwritten digits with more than three possible categories. 
-For this dataset, I will perform multinomial logistic regression to classify the digits accurately. Additionally, 
-I will explore feature importance and model performance using decision trees to complement the logistic regression results.
-The primary objective of this project is to develop predictive models that accurately classify breast tumors as malignant or benign, 
-as well as correctly identify handwritten digits. Through exploratory data analysis and the application of machine learning techniques, 
-including logistic regression.The project aims to evaluate model effectiveness and identify the most influential features for both cancer diagnosis and digit recognition.
-    """
+"""This project utilizes two datasets: the Breast Cancer dataset and the Digits dataset. 
+For breast cancer classification, I apply the K-Nearest Neighbors (KNN) algorithm to predict whether tumors are benign or
+ malignant based on features extracted from digitized images of fine needle aspirates, such as radius, texture, and smoothness. 
+ For the Digits dataset, which contains images of handwritten digits (0–9), I use multinomial logistic regression 
+ for multi-class classification. Additionally, KNN is used to analyze feature importance and support model evaluation. 
+ The goal is to build accurate predictive models and identify key features contributing to cancer diagnosis and digit recognition.
+"""
 
 # Import required libraries.
 
 from sklearn.decomposition import PCA
 import pandas as pd
 import matplotlib.pyplot as plt
-# import numpy as np
+import numpy as np
 import seaborn as sns
-# from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-# from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.inspection import DecisionBoundaryDisplay
+from sklearn.model_selection import cross_val_score
 
 
 # Function to get the data
@@ -164,20 +158,54 @@ def scaler(x_train, x_test):
 
 x_train_1_scaled, x_test_1_scaled = scaler(x_train_1, x_test_1)
 
+# Find best K value
+
+# Range of k values to try
+
+
+def find_best_value_of_k_using_Cross_validation(x, y):
+    """find best k value."""
+    k_range = range(1, 11)
+    cv_scores = []
+
+    # Evaluate each k using 5-fold cross-validation
+    for k in k_range:
+        knn = KNeighborsClassifier(n_neighbors=k)
+        scores = cross_val_score(knn, x, y, cv=5, scoring='accuracy')
+        cv_scores.append(scores.mean())
+
+    # Plot accuracy vs. k
+    plt.figure(figsize=(8, 5))
+    plt.plot(k_range, cv_scores, marker='o')
+    plt.title("k-NN Cross-Validation Accuracy vs k")
+    plt.xlabel("Number of Neighbors: k")
+    plt.ylabel("Cross-Validated Accuracy")
+    plt.grid(True)
+    plt.show()
+
+    return k_range, cv_scores
+
+
+# Finding best k using cross validation
+k_range_1, cv_scores_1 = find_best_value_of_k_using_Cross_validation(
+    x_train_1_scaled, y_train_1)
+best_k_1 = k_range_1[np.argmax(cv_scores_1)]
+print(f"Best k from cross-validation for data with outlier: {best_k_1}")
+
 # Train the model.
 
 
 def data_training(regressor, x_train, y_train):
     """Function for dataset training"""
     # Create an instance of the SVM class
-    model = regressor(kernel="rbf", gamma=0.5, C=1.0)
+    model = regressor(n_neighbors=best_k_1)
     # gamma: control the influence of a single training example.
     # Fit the model
     model.fit(x_train, y_train)
     return model
 
 
-model_1 = data_training(SVC, x_train_1_scaled, y_train_1)
+model_1 = data_training(KNeighborsClassifier, x_train_1_scaled, y_train_1)
 
 # Make a prediction
 
@@ -226,8 +254,14 @@ pca = PCA(n_components=2)
 x_train_2_pca = pca.fit_transform(x_train_2_scaled)
 x_test_2_pca = pca.transform(x_test_2_scaled)
 
+# Finding best k using cross validation
+k_range_2, cv_scores_2 = find_best_value_of_k_using_Cross_validation(
+    x_train_2_pca, y_train_2)
+best_k_2 = k_range_2[np.argmax(cv_scores_2)]
+print(f"Best k from cross-validation data without outlier: {best_k_2}")
+
 # Training data
-model_2 = data_training(SVC, x_train_2_pca, y_train_2)
+model_2 = data_training(KNeighborsClassifier, x_train_2_pca, y_train_2)
 
 # Make prediction
 y_pred_2 = prediction(model_2, x_test_2_pca)
