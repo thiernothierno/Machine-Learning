@@ -142,7 +142,7 @@ def data_training(regressor, x_train, y_train):
     model = regressor(n_estimators=100,
                       max_depth=None,
                       criterion='squared_error',
-                      max_features=10,
+                      max_features=50,
                       oob_score=True,
                       random_state=0)
     # Fit the model
