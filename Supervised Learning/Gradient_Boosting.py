@@ -17,6 +17,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, ConfusionMatrixDisplay
 from sklearn.inspection import DecisionBoundaryDisplay
 from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+from catboost import CatBoostClassifier
 
 
 # Function to get the data
@@ -145,15 +147,14 @@ X_1, y_1, x_train_1, x_test_1, y_train_1, y_test_1 = split_data(
 def data_training(regressor, x_train, y_train):
     """Function for dataset training"""
     # Create an instance of the SVM class
-    model = regressor(learning_rate=0.05, n_estimators=100,
-                      max_depth=5, random_state=42)
+    model = regressor
     # gamma: control the influence of a single training example.
     # Fit the model
     model.fit(x_train, y_train)
     return model
 
 
-model_1 = data_training(XGBClassifier, x_train_1, y_train_1)
+# model_1 = data_training(XGBClassifier, x_train_1, y_train_1)
 
 # Make a prediction
 
@@ -164,7 +165,7 @@ def prediction(model, x_test):
     return y_pred
 
 
-y_pred_1 = prediction(model_1, x_test_1)
+# y_pred_1 = prediction(model_1, x_test_1)
 
 
 # Perform a classification report
@@ -177,8 +178,8 @@ def report(y_test, y_pred):
     display.plot()
 
 
-print("\nClassification report for data with outlier:")
-report(y_test_1, y_pred_1)
+# print("\nClassification report for data with outlier:")
+# report(y_test_1, y_pred_1)
 
 
 # REMOVING OUTLIER FROM THE HOUSE DATA AND COMPARE THE RESULT WITH PREVIOUS REPORT THAT CONTAIN OUTLIER.
@@ -203,28 +204,57 @@ x_test_2_pca = pca.transform(x_test_2)
 
 
 # Training data
-model_2 = data_training(XGBClassifier, x_train_2_pca, y_train_2)
+model_XGBoost = data_training(XGBClassifier(learning_rate=0.05, n_estimators=100,
+                                            max_depth=5, random_state=42),
+                              x_train_2, y_train_2)
+
+model_lightGBM = data_training(LGBMClassifier(learning_rate=0.05, random_state=42, max_depth=5, num_leaves=31, num_iterations=50, verbose=0),
+                               x_train_2, y_train_2)
+
+model_CatBoost = data_training(CatBoostClassifier(learning_rate=0.05, depth=6, loss_function="Logloss", iterations=50, verbose=0),
+                               x_train_2, y_train_2)
 
 # Make prediction
-y_pred_2 = prediction(model_2, x_test_2_pca)
+y_pred_XGBoost = prediction(model_XGBoost, x_test_2)
+y_pred_lightGBM = prediction(model_lightGBM, x_test_2)
+y_pred_CatBoost = prediction(model_CatBoost, x_test_2)
 
 # Report
-print("\nClassification report for data without outlier:")
-report(y_test_2, y_pred_2)
+print("\nClassification report for data without outlier with XGBoost: ")
+report(y_test_2, y_pred_XGBoost)
+
+print("\nClassification report for data without outlier with LightBoost: ")
+report(y_test_2, y_pred_lightGBM)
+
+print("\nClassification report for data without outlier with CatBoost:")
+report(y_test_2, y_pred_CatBoost)
+
+
+# Calculate accuracy
+XGBoost_Accuracy = accuracy_score(y_test_2, y_pred_XGBoost)
+print(f"\nXGBoost Accuracy: {XGBoost_Accuracy * 100:.2f}%")
+
+LightGBM_Accuracy = accuracy_score(y_test_2, y_pred_lightGBM)
+print(f"\nLightGBM Accuracy: {LightGBM_Accuracy * 100:.2f}%")
+
+
+CatBoost_Accuracy = accuracy_score(y_test_2, y_pred_CatBoost)
+print(f"\nCatBoost Accuracy: {CatBoost_Accuracy * 100:.2f}%")
+
 
 # Plot Decision Boundary
-DecisionBoundaryDisplay.from_estimator(
-    model_2,
-    x_train_2_pca,
-    response_method="predict",
-    cmap='Spectral',
-    alpha=0.8,
-    xlabel="PCA Component 1",
-    ylabel="PCA Component 1",
-)
+# DecisionBoundaryDisplay.from_estimator(
+#     model_2,
+#     x_train_2_pca,
+#     response_method="predict",
+#     cmap='Spectral',
+#     alpha=0.8,
+#     xlabel="PCA Component 1",
+#     ylabel="PCA Component 1",
+# )
 
-# Scatter plot
-plt.scatter(x_train_2_pca[:, 0], x_train_2_pca[:, 1],
-            c=y_train_2,
-            s=20, edgecolors="k")
-plt.show()
+# # Scatter plot
+# plt.scatter(x_train_2_pca[:, 0], x_train_2_pca[:, 1],
+#             c=y_train_2,
+#             s=20, edgecolors="k")
+# plt.show()

@@ -196,4 +196,15 @@ print("\nClassification report for data without outlier:")
 report(y_pred_2, y_test_2)
 
 
-# Random Forest
+
+
+# report: 
+# Classification report for data with outlier:
+# MSE: 2474575805922.1694
+# MAE: 1179355.452267733
+# R² Score: 0.04772975829483295
+
+# Classification report for data without outlier:
+# MSE: 1769176443797.4026
+# MAE: 921063.3332360116
+# R² Score: 0.0844769486947653
